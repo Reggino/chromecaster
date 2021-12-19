@@ -12,6 +12,8 @@
   "dependencies": {
     "@ffmpeg/core": "^0.10.0",
     "@ffmpeg/ffmpeg": "^0.10.1",
+    "@types/bonjour": "^3.5.9",
+    "bonjour": "^3.5.0",
     "commander": "^8.3.0",
     "mediainfo.js": "^0.1.7",
     "ts-node": "^10.4.0",
