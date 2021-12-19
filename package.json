@@ -4,7 +4,8 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "./node_modules/.bin/ts-node-script src/index.ts /tmp/cromecastcast.mp4"
   },
   "author": "",
   "license": "ISC",

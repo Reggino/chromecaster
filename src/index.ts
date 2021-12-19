@@ -132,17 +132,19 @@ program
     const inputAcodec = audioTrack.Format as string;
     let outputAcodec: string | null = null;
     const inputAchannels = parseInt(audioTrack.Channels as string, 10);
-    if (inputAchannels > 2) {
+    if (!isNaN(inputAchannels) && inputAchannels > 2) {
       outputAcodec = "libvorbis";
       encoderOptions = `${encoderOptions} -ac 2`;
     } else {
-      if (["AAC", "MPEG Audio", "Vorbis", "Ogg", "Opus"].indexOf(inputAcodec)) {
+      if (
+        ["AAC", "MPEG Audio", "Vorbis", "Ogg", "Opus"].indexOf(inputAcodec) >= 0
+      ) {
         outputAcodec = "copy";
       }
       if (
         ["AC-3", "DTS", "E-AC-3", "MLP FBA", "PCM", "TrueHD", "FLAC"].indexOf(
           inputAcodec
-        )
+        ) >= 0
       ) {
         outputAcodec = "libvorbis";
       }
@@ -163,7 +165,7 @@ program
       outputGformat = lcExtension;
     }
 
-    const destinationFilename = `${tmpdir()}${sep}cromecastcast.${outputGformat}`;
+    const destinationFilename = `${tmpdir()}${sep}chromecastcast.${outputGformat}`;
     console.log(`Running FFMPEG`);
     console.log(
       `ffmpeg -loglevel error -stats -i "${videoPath}" -map 0 -scodec copy -vcodec "${outputVcodec}" -acodec "${outputAcodec}" ${encoderOptions} "${destinationFilename}"`
