@@ -3,6 +3,8 @@ import { tmpdir } from "os";
 import { parse, sep } from "path";
 import { program } from "commander";
 import MediaInfoFactory from "mediainfo.js";
+import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
+const ffmpeg = createFFmpeg({ log: true });
 
 import {
   MediaInfo,
@@ -110,7 +112,7 @@ program
       console.log(`- input video profile: ${inputVcodecProfile}`);
     }
     const inputVcodec = videoTrack.Format as string;
-    let encoderOptions = "";
+    let ffmpegArgs: string[] = [];
 
     let outputVcodec: string | null = null;
     if (["AVC", "VP8"].indexOf(inputVcodec) >= 0) {
@@ -120,8 +122,18 @@ program
       ["MPEG-4 Visual", "xvid", "MPEG Video", "HEVC"].indexOf(inputVcodec) >= 0
     ) {
       outputVcodec = "h264";
-      encoderOptions =
-        "-preset fast -profile:v high -level 4.1 -crf 17 -pix_fmt yuv420p";
+      ffmpegArgs.push(
+        "-preset",
+        "fast",
+        "-profile:v",
+        "high",
+        "-level",
+        "4.1",
+        "-crf",
+        "17",
+        "-pix_fmt",
+        "yuv420p"
+      );
     }
     if (!outputVcodec) {
       throw new Error(`Unsupported video codec: ${inputVcodec}`);
@@ -134,7 +146,7 @@ program
     const inputAchannels = parseInt(audioTrack.Channels as string, 10);
     if (!isNaN(inputAchannels) && inputAchannels > 2) {
       outputAcodec = "libvorbis";
-      encoderOptions = `${encoderOptions} -ac 2`;
+      ffmpegArgs.push("-ac", "2");
     } else {
       if (
         ["AAC", "MPEG Audio", "Vorbis", "Ogg", "Opus"].indexOf(inputAcodec) >= 0
@@ -160,16 +172,39 @@ program
       outputGformat === "ok";
     if (sourceIsPlayable) {
       console.log("- file should be playable by Chromecast!");
+      return;
     } else console.log(`- video length: ${generalTrack.Duration}`);
     if (outputGformat === "ok") {
       outputGformat = lcExtension;
     }
 
     const destinationFilename = `${tmpdir()}${sep}chromecastcast.${outputGformat}`;
-    console.log(`Running FFMPEG`);
-    console.log(
-      `ffmpeg -loglevel error -stats -i "${videoPath}" -map 0 -scodec copy -vcodec "${outputVcodec}" -acodec "${outputAcodec}" ${encoderOptions} "${destinationFilename}"`
+    console.log(`Loading FFMPEG`);
+    await ffmpeg.load();
+    console.log(`Starting ffmpeg`);
+    ffmpeg.FS("writeFile", parsedPath.base, await fetchFile(videoPath));
+    await ffmpeg.run(
+      "-loglevel",
+      "error",
+      "-stats",
+      "-i",
+      parsedPath.base,
+      "-map",
+      "0",
+      "-scodec",
+      "copy",
+      "-vcodec",
+      outputVcodec,
+      "-acodec",
+      outputAcodec,
+      ...ffmpegArgs,
+      `chromecastcast.${outputGformat}`
     );
+    await fsPromises.writeFile(
+      destinationFilename,
+      ffmpeg.FS("readFile", `chromecastcast.${outputGformat}`)
+    );
+    console.log("Waiting?");
   });
 
 program.parse(process.argv);
