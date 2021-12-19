@@ -1,5 +1,5 @@
 import { parse, sep } from "path";
-import { promises as fsPromises } from "fs";
+import { promises as fsPromises, unlinkSync } from "fs";
 import {
   MediaInfo,
   ReadChunkFunc,
@@ -7,9 +7,8 @@ import {
 } from "mediainfo.js/dist/types";
 import MediaInfoFactory from "mediainfo.js";
 import { tmpdir } from "os";
-import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
-
-const ffmpeg = createFFmpeg({ log: true });
+import { spawn } from "child_process";
+import pathToFfmpeg from "ffmpeg-static";
 
 export async function initialize(videoPath: string) {
   const parsedPath = parse(videoPath);
@@ -171,16 +170,15 @@ export async function initialize(videoPath: string) {
   }
 
   const destinationFilename = `${tmpdir()}${sep}chromecastcast.${outputGformat}`;
-  console.log(`Loading FFMPEG`);
-  await ffmpeg.load();
-  console.log(`Starting ffmpeg`);
-  ffmpeg.FS("writeFile", parsedPath.base, await fetchFile(videoPath));
-  await ffmpeg.run(
+  try {
+    unlinkSync(destinationFilename);
+  } catch {}
+  const ffmpegProcess = spawn(pathToFfmpeg, [
     "-loglevel",
     "error",
     "-stats",
     "-i",
-    parsedPath.base,
+    videoPath,
     "-map",
     "0",
     "-scodec",
@@ -190,11 +188,19 @@ export async function initialize(videoPath: string) {
     "-acodec",
     outputAcodec,
     ...ffmpegArgs,
-    `chromecastcast.${outputGformat}`
-  );
-  await fsPromises.writeFile(
     destinationFilename,
-    ffmpeg.FS("readFile", `chromecastcast.${outputGformat}`)
-  );
-  console.log("Waiting?");
+  ]);
+
+  ffmpegProcess.stdout.on("data", (data) => {
+    console.log(`stdout: ${data}`);
+  });
+
+  ffmpegProcess.stderr.on("data", (data) => {
+    console.error(`stderr: ${data}`);
+  });
+
+  ffmpegProcess.on("close", (code) => {
+    console.log(`child process exited with code ${code}`);
+  });
+  return destinationFilename;
 }
