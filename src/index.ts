@@ -1,11 +1,12 @@
 import { program } from "commander";
 import getPort from "get-port";
-import * as chromecast from "./chromecast";
-import * as video from "./video";
-import * as server from "./server";
-import * as subtitles from "./subtitles";
+import * as chromecast from "./chromecast/index.js";
+import * as video from "./video/index.js";
+import * as server from "./server/index.js";
+import * as subtitles from "./subtitles/index.js";
 
 program
+  .name("chromecaster")
   .version("0.0.1")
   .description("Play any video on your Chromecast")
   .option("-c, --chromecast <name>", "Name of target Chromecast on the network")
