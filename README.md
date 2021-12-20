@@ -29,7 +29,7 @@ Options:
 
 ## Note
 
-- Only use -c parameter when multiple Chromecasts are on the network.
+- Only use -c parameter when multiple Chromecasts exist on the network.
 
 ## Download 1.0.0
 
