@@ -163,14 +163,14 @@ export async function initialize(videoPath: string) {
     outputGformat === "ok";
   if (sourceIsPlayable) {
     console.log("- file should be playable by Chromecast!");
-    return;
+    return videoPath;
   } else console.log(`- video length: ${generalTrack.Duration}`);
   if (outputGformat === "ok") {
     // mkv can stream while transcoding
     outputGformat = 'mkv';
   }
 
-  const destinationFilename = `${tmpdir()}${sep}chromecastcast.${outputGformat}`;
+  const destinationFilename = `${tmpdir()}${sep}chromecaster.${outputGformat}`;
   try {
     unlinkSync(destinationFilename);
   } catch {}
@@ -193,11 +193,11 @@ export async function initialize(videoPath: string) {
   ]);
 
   ffmpegProcess.stdout.on("data", (data) => {
-    console.log(`stdout: ${data}`);
+    console.log(`ffmpeg stdout: ${data}`);
   });
 
   ffmpegProcess.stderr.on("data", (data) => {
-    console.error(`stderr: ${data}`);
+    console.error(`ffmpeg stderr: ${data}`);
   });
 
   ffmpegProcess.on("close", (code) => {

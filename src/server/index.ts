@@ -2,16 +2,21 @@ import { createReadStream, statSync } from "fs";
 import express from "express";
 import cors from "cors";
 
-let videoPath = "";
-let subtitlePath = "";
-
-export async function initialize(port: number) {
+export async function initialize(
+  port: number,
+  videoPath: string,
+  subtitlePath: string | null
+) {
   // END OF CONFIG
   const mediaServerApp = express();
 
   mediaServerApp.use(cors());
 
   mediaServerApp.get("/subtitles", function (req, res) {
+    if (!subtitlePath) {
+      res.status(404).send("Subtitles not available");
+      return;
+    }
     res.setHeader("Content-Type", "text/vtt");
     res.sendFile(subtitlePath);
   });
@@ -42,11 +47,3 @@ export async function initialize(port: number) {
     });
   });
 }
-
-export const setMediaServerVideoPath = (newVideoPath: string): void => {
-  videoPath = newVideoPath;
-};
-
-export const setMediaServerSubtitlesPath = (newSubtitlesPath: string): void => {
-  subtitlePath = newSubtitlesPath;
-};
