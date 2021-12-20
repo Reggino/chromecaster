@@ -166,7 +166,8 @@ export async function initialize(videoPath: string) {
     return;
   } else console.log(`- video length: ${generalTrack.Duration}`);
   if (outputGformat === "ok") {
-    outputGformat = lcExtension;
+    // mkv can stream while transcoding
+    outputGformat = 'mkv';
   }
 
   const destinationFilename = `${tmpdir()}${sep}chromecastcast.${outputGformat}`;
