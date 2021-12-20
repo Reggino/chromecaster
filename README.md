@@ -7,7 +7,7 @@
 - Realtime transcoding of video, if required
 - Support for .srt subtitles
 - Support for older Chromecast devices (no subtitle placement issues)
-- "FFmpeg" & "mediainfo" dependencies provider automatically
+- "FFmpeg" & "mediainfo" dependencies provided automatically
 
 ## Usage
 
