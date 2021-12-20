@@ -4,10 +4,9 @@
   "description": "",
   "main": "dist/chromecaster.js",
   "scripts": {
-    "build": "./node_modules/.bin/tsc",
+    "build": "rm -rf dist chromecaster-*; ./node_modules/.bin/tsc && ./node_modules/.bin/pkg dist/chromecaster.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "type": "module",
   "author": "Tim de Koning",
   "license": "ISC",
   "dependencies": {
@@ -22,13 +21,14 @@
     "cors": "^2.8.5",
     "express": "^4.17.2",
     "ffmpeg-static": "^4.4.0",
-    "get-port": "^6.0.0",
+    "get-port": "^5.1.1",
     "mediainfo.js": "^0.1.7",
     "shell-escape": "^0.2.0",
     "srt-to-vtt": "^1.1.3",
     "typescript": "^4.5.4"
   },
   "devDependencies": {
+    "pkg": "^5.5.1",
     "prettier": "^2.5.1"
   }
 }
