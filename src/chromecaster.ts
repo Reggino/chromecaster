@@ -1,5 +1,6 @@
 import { program } from "commander";
 import getPort from "get-port";
+import { parse } from "path";
 import * as chromecast from "./chromecast.js";
 import * as video from "./video.js";
 import * as server from "./server.js";
@@ -28,6 +29,7 @@ program
         console.log(
           await chromecast.startMovie(
             myChromecast,
+            parse(videoPath).name,
             finalPort,
             finalVideoPath,
             finalSubtitlePath

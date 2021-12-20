@@ -14,14 +14,17 @@ export async function initialize(
 
   mediaServerApp.get("/subtitles", function (req, res) {
     if (!subtitlePath) {
+      console.log("server: 404 for subtitles");
       res.status(404).send("Subtitles not available");
       return;
     }
+    console.log("server: sending subtitles");
     res.setHeader("Content-Type", "text/vtt");
     res.sendFile(subtitlePath);
   });
   mediaServerApp.get("/video", function (req, res) {
     const { range = "" } = req.headers;
+    console.log("server: sending range", range);
     if (!range) {
       res.status(400).send("Requires Range header");
     }

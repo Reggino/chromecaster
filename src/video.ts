@@ -1,14 +1,36 @@
 import { parse, sep } from "path";
-import { promises as fsPromises, unlinkSync } from "fs";
 import {
-  MediaInfo,
-  ReadChunkFunc,
-  ResultObject,
-} from "mediainfo.js/dist/types";
-import MediaInfoFactory from "mediainfo.js";
+  unlinkSync,
+  chmodSync,
+  createReadStream,
+  existsSync,
+  createWriteStream,
+} from "fs";
 import { tmpdir } from "os";
 import { spawn } from "child_process";
-import pathToFfmpeg from "ffmpeg-static";
+// @ts-ignore
+import { path as mediainfoSource } from "mediainfo-static";
+import ffmpegSource from "ffmpeg-static";
+
+export type Track = {
+  "@type":
+    | "General"
+    | "Video"
+    | "Audio"
+    | "Text"
+    | "Image"
+    | "Chapters"
+    | "Menu";
+  // Endless more properties:
+  // https://github.com/MediaArea/MediaInfoLib/tree/master/Source/Resource/Text/Stream
+} & Record<string, unknown>;
+
+interface ResultObject {
+  "@ref": string;
+  media: {
+    track: Track[];
+  };
+}
 
 export async function initialize(videoPath: string) {
   const parsedPath = parse(videoPath);
@@ -34,23 +56,43 @@ export async function initialize(videoPath: string) {
     process.exit(1);
   }
   console.log(`Detected valid extension (${parsedPath.ext})`);
-  let fileHandle: fsPromises.FileHandle | undefined;
-  let fileSize: number;
-  let mediainfo: MediaInfo | undefined;
 
-  fileHandle = await fsPromises.open(videoPath, "r");
-  fileSize = (await fileHandle.stat()).size;
-  // { format: 'object', coverData: true }
-  mediainfo = (await MediaInfoFactory()) as MediaInfo;
-  const readChunk: ReadChunkFunc = async (size, offset) => {
-    const buffer = new Uint8Array(size);
-    await (fileHandle as fsPromises.FileHandle).read(buffer, 0, size, offset);
-    return buffer;
-  };
-  const result = (await mediainfo.analyzeData(
-    () => fileSize,
-    readChunk
-  )) as ResultObject;
+  // "installing" mediainfo
+  // https://github.com/vercel/pkg/issues/960
+  const parsedMediainfoSource = parse(mediainfoSource);
+  const pathToMediainfo = `${tmpdir()}${sep}chromecaster.${
+    parsedMediainfoSource.name
+  }`;
+  if (!existsSync(pathToMediainfo)) {
+    console.log("Setting up executable copy of mediainfo...");
+    await new Promise((resolve, reject) => {
+      const rs = createReadStream(mediainfoSource);
+      const ws = createWriteStream(pathToMediainfo);
+      rs.pipe(ws).on("finish", resolve);
+    });
+    chmodSync(pathToMediainfo, 0o777);
+    console.log(`Copy complete to ${pathToMediainfo}`);
+  }
+
+  const result = await new Promise<ResultObject>((resolve, reject) => {
+    const mediainfoProcess = spawn(pathToMediainfo, [
+      "--Output=JSON",
+      videoPath,
+    ]);
+    let output: string[] = [];
+    mediainfoProcess.stdout.on("data", (data) => {
+      output.push(data);
+    });
+    mediainfoProcess.stderr.on("data", reject);
+    mediainfoProcess.on("close", (code) => {
+      if (code) {
+        reject(new Error(`mediainfo process exited with code ${code}`));
+        return;
+      }
+      resolve(JSON.parse(output.join("")));
+    });
+  });
+
   if (!result) {
     throw new Error("Mediainfo analysis failed: unsupported video");
   }
@@ -58,8 +100,6 @@ export async function initialize(videoPath: string) {
     "Mediainfo tracks: ",
     JSON.stringify(result.media.track, null, "\t")
   );
-  fileHandle && (await fileHandle.close());
-  mediainfo && mediainfo.close();
   const generalTrack = result.media.track.find(
     (track) => track["@type"] === "General"
   );
@@ -167,13 +207,31 @@ export async function initialize(videoPath: string) {
   } else console.log(`- video length: ${generalTrack.Duration}`);
   if (outputGformat === "ok") {
     // mkv can stream while transcoding
-    outputGformat = 'mkv';
+    outputGformat = "mkv";
   }
 
   const destinationFilename = `${tmpdir()}${sep}chromecaster.${outputGformat}`;
   try {
     unlinkSync(destinationFilename);
   } catch {}
+
+  // "installing" ffmpeg
+  // https://github.com/vercel/pkg/issues/960
+  const parsedFfmpegSource = parse(ffmpegSource);
+  const pathToFfmpeg = `${tmpdir()}${sep}chromecaster.${
+    parsedFfmpegSource.name
+  }`;
+  if (!existsSync(pathToFfmpeg)) {
+    console.log("Setting up executable copy of ffmpeg...");
+    await new Promise((resolve, reject) => {
+      const rs = createReadStream(ffmpegSource);
+      const ws = createWriteStream(pathToFfmpeg);
+      rs.pipe(ws).on("finish", resolve);
+    });
+    chmodSync(pathToFfmpeg, 0o777);
+    console.log(`Copy complete to ${pathToFfmpeg}`);
+  }
+
   const ffmpegProcess = spawn(pathToFfmpeg, [
     "-loglevel",
     "error",
@@ -197,11 +255,22 @@ export async function initialize(videoPath: string) {
   });
 
   ffmpegProcess.stderr.on("data", (data) => {
-    console.error(`ffmpeg stderr: ${data}`);
+    // statis in stderr?
+    console.error(`ffmpeg: ${data}`);
   });
 
   ffmpegProcess.on("close", (code) => {
-    console.log(`child process exited with code ${code}`);
+    if (code) {
+      console.log(`ffmpeg process exited with code ${code}`);
+      process.exit(code);
+    }
   });
-  return destinationFilename;
+
+  return new Promise<string>((resolve, reject) => {
+    console.log("Giving ffmpeg 5 second head start before streaming...");
+    setTimeout(() => {
+      console.log("FFmpeg stream probably readly, continue");
+      resolve(destinationFilename);
+    }, 5000);
+  });
 }
