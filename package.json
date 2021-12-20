@@ -16,12 +16,12 @@
     "@types/express": "^4.17.13",
     "@types/ffmpeg-static": "^3.0.0",
     "@types/shell-escape": "^0.2.0",
+    "axios": "^0.24.0",
     "bonjour": "^3.5.0",
     "castv2-client": "^1.2.0",
     "commander": "^8.3.0",
     "cors": "^2.8.5",
     "express": "^4.17.2",
-    "ffmpeg-static": "^4.4.0",
     "get-port": "^5.1.1",
     "mediainfo-static": "^1.0.5",
     "pkg": "^5.5.1",
@@ -33,7 +33,7 @@
   "pkg": {
     "assets": [
       "node_modules/castv2/lib/cast_channel.proto",
-      "node_modules/ffmpeg-static/ffmpeg"
+      "node_modules/mediainfo-static/bin/**/*.*"
     ],
     "outputPath": "build"
   }

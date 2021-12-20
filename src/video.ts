@@ -6,11 +6,13 @@ import {
   existsSync,
   createWriteStream,
 } from "fs";
-import { tmpdir } from "os";
+import { arch, platform, tmpdir } from "os";
 import { spawn } from "child_process";
+import { createGunzip } from "zlib";
+import axios from "axios";
+
 // @ts-ignore
 import { path as mediainfoSource } from "mediainfo-static";
-import ffmpegSource from "ffmpeg-static";
 
 export type Track = {
   "@type":
@@ -217,18 +219,30 @@ export async function initialize(videoPath: string) {
 
   // "installing" ffmpeg
   // https://github.com/vercel/pkg/issues/960
-  const parsedFfmpegSource = parse(ffmpegSource);
-  const pathToFfmpeg = `${tmpdir()}${sep}chromecaster.${
-    parsedFfmpegSource.name
+  const pathToFfmpeg = `${tmpdir()}${sep}${
+    platform() === "win32" ? "chromecaster.ffmpeg.exe" : "chromecaster.ffmpeg"
   }`;
   if (!existsSync(pathToFfmpeg)) {
+    const url = `https://github.com/eugeneware/ffmpeg-static/releases/download/b4.4/${platform()}-${arch()}.gz`;
     console.log("Setting up executable copy of ffmpeg...");
-    await new Promise((resolve, reject) => {
-      const rs = createReadStream(ffmpegSource);
-      const ws = createWriteStream(pathToFfmpeg);
-      rs.pipe(ws).on("finish", resolve);
-    });
-    chmodSync(pathToFfmpeg, 0o777);
+    console.log(`Downloading ${url} to ${pathToFfmpeg}`);
+    await axios
+      .request({
+        method: "GET",
+        responseType: "stream",
+        url,
+      })
+      .then(
+        (response) =>
+          new Promise((resolve, reject) =>
+            response.data
+              .pipe(createGunzip())
+              .pipe(createWriteStream(pathToFfmpeg))
+              .on("error", reject)
+              .on("finish", resolve)
+          )
+      );
+    chmodSync(pathToFfmpeg, 0o755);
     console.log(`Copy complete to ${pathToFfmpeg}`);
   }
 

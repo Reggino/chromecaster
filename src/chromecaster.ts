@@ -10,9 +10,9 @@ program
   .name("chromecaster")
   .version("0.0.1")
   .description("Play any video on your Chromecast")
-  .option("-c, --chromecast <name>", "Name of target Chromecast on the network")
-  .option("-s, --subtitles <path to .srt-file>", "Subtitles to show")
-  .argument("<path to video file>", "Video to play")
+  .option("-c, --chromecast <name>", "name of target Chromecast on the network")
+  .option("-s, --subtitles <path to .srt-file>", "subtitles to show")
+  .argument("<path to video file>", "video to play")
   .action(async (videoPath) => {
     const options = program.opts();
     console.log(`Movie path: ${videoPath}`);
