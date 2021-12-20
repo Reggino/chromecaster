@@ -1,9 +1,9 @@
 import { program } from "commander";
 import getPort from "get-port";
-import * as chromecast from "./chromecast/index.js";
-import * as video from "./video/index.js";
-import * as server from "./server/index.js";
-import * as subtitles from "./subtitles/index.js";
+import * as chromecast from "./chromecast.js";
+import * as video from "./video.js";
+import * as server from "./server.js";
+import * as subtitles from "./subtitles.js";
 
 program
   .name("chromecaster")
