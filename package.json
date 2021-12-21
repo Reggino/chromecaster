@@ -23,7 +23,6 @@
     "cors": "^2.8.5",
     "express": "^4.17.2",
     "get-port": "^5.1.1",
-    "mediainfo-static": "^1.0.5",
     "pkg": "^5.5.1",
     "prettier": "^2.5.1",
     "shell-escape": "^0.2.0",
@@ -32,8 +31,7 @@
   },
   "pkg": {
     "assets": [
-      "node_modules/castv2/lib/cast_channel.proto",
-      "node_modules/mediainfo-static/bin/**/*.*"
+      "node_modules/castv2/lib/cast_channel.proto"
     ],
     "outputPath": "build"
   }

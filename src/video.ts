@@ -1,18 +1,15 @@
 import { parse, sep } from "path";
 import {
-  unlinkSync,
   chmodSync,
-  createReadStream,
-  existsSync,
   createWriteStream,
+  existsSync,
+  renameSync,
+  unlinkSync,
 } from "fs";
 import { arch, platform, tmpdir } from "os";
 import { spawn } from "child_process";
 import { createGunzip } from "zlib";
 import axios from "axios";
-
-// @ts-ignore
-import { path as mediainfoSource } from "mediainfo-static";
 
 export type Track = {
   "@type":
@@ -32,6 +29,38 @@ interface ResultObject {
   media: {
     track: Track[];
   };
+}
+
+async function download(url: string, toPath: string) {
+  if (existsSync(toPath)) {
+    console.log(`${toPath} already exists. Skipping download`);
+    return;
+  }
+  console.log(`Downloading ${url} to ${toPath}`);
+  await axios
+    .request({
+      method: "GET",
+      responseType: "stream",
+      url,
+    })
+    .then(
+      (response) =>
+        new Promise<void>((resolve, reject) => {
+          let rs = response.data;
+          if (url.endsWith(".gz")) {
+            rs = rs.pipe(createGunzip());
+          }
+          // use a tmp file so an interrupted download will not leave a broken file
+          rs.pipe(createWriteStream(`${toPath}.tmp`))
+            .on("error", reject)
+            .on("finish", () => {
+              renameSync(`${toPath}.tmp`, toPath);
+              resolve();
+            });
+        })
+    );
+  chmodSync(toPath, 0o755);
+  console.log(`Copy complete to ${toPath}`);
 }
 
 export async function initialize(videoPath: string) {
@@ -59,22 +88,16 @@ export async function initialize(videoPath: string) {
   }
   console.log(`Detected valid extension (${parsedPath.ext})`);
 
-  // "installing" mediainfo
-  // https://github.com/vercel/pkg/issues/960
-  const parsedMediainfoSource = parse(mediainfoSource);
-  const pathToMediainfo = `${tmpdir()}${sep}chromecaster.${
-    parsedMediainfoSource.name
+  // installing mediainfo
+  const pathToMediainfo = `${tmpdir()}${sep}chromecaster.mediainfo${
+    platform() === "win32" ? ".exe" : ""
   }`;
-  if (!existsSync(pathToMediainfo)) {
-    console.log("Setting up executable copy of mediainfo...");
-    await new Promise((resolve, reject) => {
-      const rs = createReadStream(mediainfoSource);
-      const ws = createWriteStream(pathToMediainfo);
-      rs.pipe(ws).on("finish", resolve);
-    });
-    chmodSync(pathToMediainfo, 0o777);
-    console.log(`Copy complete to ${pathToMediainfo}`);
-  }
+  await download(
+    `https://raw.githubusercontent.com/Aldrian/mediainfo-static/master/bin/${platform()}/${arch()}/mediainfo${
+      platform() === "win32" ? ".exe" : ""
+    }`,
+    pathToMediainfo
+  );
 
   const result = await new Promise<ResultObject>((resolve, reject) => {
     const mediainfoProcess = spawn(pathToMediainfo, [
@@ -222,29 +245,10 @@ export async function initialize(videoPath: string) {
   const pathToFfmpeg = `${tmpdir()}${sep}${
     platform() === "win32" ? "chromecaster.ffmpeg.exe" : "chromecaster.ffmpeg"
   }`;
-  if (!existsSync(pathToFfmpeg)) {
-    const url = `https://github.com/eugeneware/ffmpeg-static/releases/download/b4.4/${platform()}-${arch()}.gz`;
-    console.log("Setting up executable copy of ffmpeg...");
-    console.log(`Downloading ${url} to ${pathToFfmpeg}`);
-    await axios
-      .request({
-        method: "GET",
-        responseType: "stream",
-        url,
-      })
-      .then(
-        (response) =>
-          new Promise((resolve, reject) =>
-            response.data
-              .pipe(createGunzip())
-              .pipe(createWriteStream(pathToFfmpeg))
-              .on("error", reject)
-              .on("finish", resolve)
-          )
-      );
-    chmodSync(pathToFfmpeg, 0o755);
-    console.log(`Copy complete to ${pathToFfmpeg}`);
-  }
+  await download(
+    `https://github.com/eugeneware/ffmpeg-static/releases/download/b4.4/${platform()}-${arch()}.gz`,
+    pathToFfmpeg
+  );
 
   const ffmpegProcess = spawn(pathToFfmpeg, [
     "-loglevel",

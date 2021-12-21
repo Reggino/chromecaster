@@ -6,8 +6,8 @@
 - CLI based
 - Realtime transcoding of video, if required
 - Support for .srt subtitles
-- Support for older Chromecast devices (no subtitle placement issues)
-- "FFmpeg" & "mediainfo" dependencies provided automatically
+- Support for older Chromecast devices and firmware
+- No manual dependencies (any required software is fetched and configured automatically)
 
 ## Usage
 
