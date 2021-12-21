@@ -9,6 +9,12 @@
 - Support for older Chromecast devices and firmware
 - No manual dependencies (any required software is fetched and configured automatically)
 
+## Download 1.0.1
+
+- [For Windows](https://github.com/Reggino/chromecaster/releases/download/v1.0.1/chromecaster-win.exe)
+- [For macOS](https://github.com/Reggino/chromecaster/releases/download/v1.0.1/chromecaster-macos)
+- [For Linux](https://github.com/Reggino/chromecaster/releases/download/v1.0.1/chromecaster-linux)
+
 ## Usage
 
 ```
@@ -30,9 +36,3 @@ Options:
 ## Note
 
 - Only use -c parameter when multiple Chromecasts exist on the network.
-
-## Download 1.0.0
-
-- [For Windows](https://github.com/Reggino/chromecaster/releases/download/v1.0.0/chromecaster-win.exe)
-- [For macOS](https://github.com/Reggino/chromecaster/releases/download/v1.0.0/chromecaster-macos)
-- [For Linux](https://github.com/Reggino/chromecaster/releases/download/v1.0.0/chromecaster-linux)
