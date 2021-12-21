@@ -15,10 +15,12 @@ program
   .option("-s, --subtitles <path to .srt-file>", "subtitles to show")
   .option("-v, --verbose", "show debug information")
   .argument("<path to video file>", "video to play")
-  .action(async (videoPath) => {
+  .action((videoPath) => {
     const options = program.opts();
-    console.log(`Movie path: ${videoPath}`);
-    console.log(`Options: ${JSON.stringify(options)}\n`);
+    console.log(`Playing ${videoPath}`);
+    if (Object.keys(options).length) {
+      console.log(`Options: ${JSON.stringify(options)}\n`);
+    }
 
     if (options.verbose) {
       setVerbose(true);
@@ -29,20 +31,34 @@ program
       getPort(),
       video.initialize(videoPath),
       subtitles.initialize(options.subtitles),
-    ]).then(
-      async ([myChromecast, finalPort, finalVideoPath, finalSubtitlePath]) => {
-        await server.initialize(finalPort, finalVideoPath, finalSubtitlePath);
-        log(
-          await chromecast.startMovie(
-            myChromecast,
-            parse(videoPath).name,
-            finalPort,
-            finalVideoPath,
-            finalSubtitlePath
-          )
-        );
-      }
-    );
+    ])
+      .then(
+        async ([
+          myChromecast,
+          finalPort,
+          finalVideoPath,
+          finalSubtitlePath,
+        ]) => {
+          await server.initialize(finalPort, finalVideoPath, finalSubtitlePath);
+          log(
+            await chromecast.startMovie(
+              myChromecast,
+              parse(videoPath).name,
+              finalPort,
+              finalVideoPath,
+              finalSubtitlePath
+            )
+          );
+        }
+      )
+      .catch((e) => {
+        console.log("\n");
+        if (options.verbose) {
+          throw e;
+        }
+        console.log(`${e.message}\n`);
+        process.exit(1);
+      });
   });
 
 program.parse(process.argv);
