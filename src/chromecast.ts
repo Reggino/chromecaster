@@ -2,6 +2,7 @@ import bonjour from "bonjour";
 import { networkInterfaces } from "os";
 // @ts-ignore
 import { Client, DefaultMediaReceiver } from "castv2-client";
+import { log } from "./logger";
 
 interface IChromecast {
   ip: string;
@@ -11,7 +12,7 @@ interface IChromecast {
 }
 
 export async function initialize(name?: string): Promise<IChromecast> {
-  console.log("Looking for chromecasts");
+  log("Looking for chromecasts");
   return new Promise((resolve, reject) => {
     const chromecasts: IChromecast[] = [];
 
@@ -47,7 +48,7 @@ export async function initialize(name?: string): Promise<IChromecast> {
     }, 2000);
 
     bonjour().find({ type: "googlecast" }, (service) => {
-      console.log(
+      log(
         `Found chromecast: ${JSON.stringify(
           { ...service, rawTxt: undefined },
           null,
@@ -93,7 +94,7 @@ export async function startMovie(
     },
     []
   );
-  console.log(`Found local IP address: ${localIpAddresses.join(", ")}`);
+  log(`Found local IP address: ${localIpAddresses.join(", ")}`);
 
   const chromecastIpNibbles = chromecast.ip.split(".") || [];
   const matchLength = localIpAddresses.map((ip) => {
@@ -106,7 +107,7 @@ export async function startMovie(
   });
   const bestMatchIndex = matchLength.indexOf(Math.max(...matchLength));
   const localIpAddress = localIpAddresses[bestMatchIndex];
-  console.log(`Best match for Chromecast: ${localIpAddress}`);
+  log(`Best match for Chromecast: ${localIpAddress}`);
 
   return new Promise((resolve, reject) => {
     const client = new Client();
@@ -115,13 +116,13 @@ export async function startMovie(
         reject(err);
         return;
       }
-      console.log("Chomecast connected, launching DefaultMediaReceiver");
+      log("Chomecast connected, launching DefaultMediaReceiver");
       client.launch(DefaultMediaReceiver, (err: Error, player: any) => {
         if (err) {
           reject(err);
           return;
         }
-        console.log("Player launched, starting movie");
+        log("Player launched, starting movie");
         player.load(
           {
             // Here you can plug an URL to any mp4, webm, mp3 or jpg file with the proper contentType.

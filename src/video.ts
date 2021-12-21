@@ -10,6 +10,7 @@ import { arch, platform, tmpdir } from "os";
 import { spawn } from "child_process";
 import { createGunzip } from "zlib";
 import axios from "axios";
+import { log } from "./logger";
 
 export type Track = {
   "@type":
@@ -33,10 +34,10 @@ interface ResultObject {
 
 async function download(url: string, toPath: string) {
   if (existsSync(toPath)) {
-    console.log(`${toPath} already exists. Skipping download`);
+    log(`${toPath} already exists. Skipping download`);
     return;
   }
-  console.log(`Downloading ${url} to ${toPath}`);
+  log(`Downloading ${url} to ${toPath}`);
   await axios
     .request({
       method: "GET",
@@ -60,7 +61,7 @@ async function download(url: string, toPath: string) {
         })
     );
   chmodSync(toPath, 0o755);
-  console.log(`Copy complete to ${toPath}`);
+  log(`Copy complete to ${toPath}`);
 }
 
 export async function initialize(videoPath: string) {
@@ -83,10 +84,10 @@ export async function initialize(videoPath: string) {
       "m4v",
     ].indexOf(lcExtension) === -1
   ) {
-    console.log("- not a video format, exiting");
+    log("- not a video format, exiting");
     process.exit(1);
   }
-  console.log(`Detected valid extension (${parsedPath.ext})`);
+  log(`Detected valid extension (${parsedPath.ext})`);
 
   // installing mediainfo
   const pathToMediainfo = `${tmpdir()}${sep}chromecaster.mediainfo${
@@ -121,10 +122,7 @@ export async function initialize(videoPath: string) {
   if (!result) {
     throw new Error("Mediainfo analysis failed: unsupported video");
   }
-  console.log(
-    "Mediainfo tracks: ",
-    JSON.stringify(result.media.track, null, "\t")
-  );
+  log("Mediainfo tracks: ", JSON.stringify(result.media.track, null, "\t"));
   const generalTrack = result.media.track.find(
     (track) => track["@type"] === "General"
   );
@@ -160,12 +158,12 @@ export async function initialize(videoPath: string) {
   if (!outputGformat) {
     throw new Error(`Unsupported format: ${inputGformat}`);
   }
-  console.log(`- general: ${inputGformat} -> ${outputGformat}`);
+  log(`- general: ${inputGformat} -> ${outputGformat}`);
 
   // # test video codec
   const inputVcodecProfile = videoTrack.Format_Profile;
   if (inputVcodecProfile) {
-    console.log(`- input video profile: ${inputVcodecProfile}`);
+    log(`- input video profile: ${inputVcodecProfile}`);
   }
   const inputVcodec = videoTrack.Format as string;
   let ffmpegArgs: string[] = [];
@@ -194,7 +192,7 @@ export async function initialize(videoPath: string) {
   if (!outputVcodec) {
     throw new Error(`Unsupported video codec: ${inputVcodec}`);
   }
-  console.log(`- video: ${inputVcodec} -> ${outputVcodec}`);
+  log(`- video: ${inputVcodec} -> ${outputVcodec}`);
 
   // # test audio codec
   const inputAcodec = audioTrack.Format as string;
@@ -220,16 +218,16 @@ export async function initialize(videoPath: string) {
   if (!outputAcodec) {
     throw new Error(`Unsupported audio codec: ${outputAcodec}`);
   }
-  console.log(`- audio: ${inputAcodec} -> ${outputAcodec}`);
+  log(`- audio: ${inputAcodec} -> ${outputAcodec}`);
 
   const sourceIsPlayable =
     outputVcodec === "copy" &&
     outputAcodec === "copy" &&
     outputGformat === "ok";
   if (sourceIsPlayable) {
-    console.log("- file should be playable by Chromecast!");
+    log("- file should be playable by Chromecast!");
     return videoPath;
-  } else console.log(`- video length: ${generalTrack.Duration}`);
+  } else log(`- video length: ${generalTrack.Duration}`);
   if (outputGformat === "ok") {
     // mkv can stream while transcoding
     outputGformat = "mkv";
@@ -269,25 +267,24 @@ export async function initialize(videoPath: string) {
   ]);
 
   ffmpegProcess.stdout.on("data", (data) => {
-    console.log(`ffmpeg stdout: ${data}`);
+    log(`ffmpeg stdout: ${data}`);
   });
 
   ffmpegProcess.stderr.on("data", (data) => {
-    // statis in stderr?
-    console.error(`ffmpeg: ${data}`);
+    log(`ffmpeg: ${data}`);
   });
 
   ffmpegProcess.on("close", (code) => {
     if (code) {
-      console.log(`ffmpeg process exited with code ${code}`);
+      log(`ffmpeg process exited with code ${code}`);
       process.exit(code);
     }
   });
 
   return new Promise<string>((resolve, reject) => {
-    console.log("Giving ffmpeg 5 second head start before streaming...");
+    log("Giving ffmpeg 5 second head start before streaming...");
     setTimeout(() => {
-      console.log("FFmpeg stream probably readly, continue");
+      log("FFmpeg stream probably readly, continue");
       resolve(destinationFilename);
     }, 5000);
   });

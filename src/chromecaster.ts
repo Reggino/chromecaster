@@ -5,6 +5,7 @@ import * as chromecast from "./chromecast.js";
 import * as video from "./video.js";
 import * as server from "./server.js";
 import * as subtitles from "./subtitles.js";
+import { log, setVerbose } from "./logger";
 
 program
   .name("chromecaster")
@@ -12,11 +13,16 @@ program
   .description("Play any video on your Chromecast")
   .option("-c, --chromecast <name>", "name of target Chromecast on the network")
   .option("-s, --subtitles <path to .srt-file>", "subtitles to show")
+  .option("-v, --verbose", "show debug information")
   .argument("<path to video file>", "video to play")
   .action(async (videoPath) => {
     const options = program.opts();
     console.log(`Movie path: ${videoPath}`);
-    console.log(`Options: ${JSON.stringify(options)}`);
+    console.log(`Options: ${JSON.stringify(options)}\n`);
+
+    if (options.verbose) {
+      setVerbose(true);
+    }
 
     Promise.all([
       chromecast.initialize(options.chromecast),
@@ -26,7 +32,7 @@ program
     ]).then(
       async ([myChromecast, finalPort, finalVideoPath, finalSubtitlePath]) => {
         await server.initialize(finalPort, finalVideoPath, finalSubtitlePath);
-        console.log(
+        log(
           await chromecast.startMovie(
             myChromecast,
             parse(videoPath).name,
