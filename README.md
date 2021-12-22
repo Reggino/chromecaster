@@ -7,9 +7,9 @@
 - Realtime transcoding of video, if required
 - Support for .srt subtitles
 - Support for older Chromecast devices and firmware
-- No manual dependencies (any required software is fetched and configured automatically)
+- No external dependencies (required software is embeded)
 
-## Download 1.0.1
+## Download 1.0.1 (64-bit versions)
 
 - [For Windows](https://github.com/Reggino/chromecaster/releases/download/v1.0.1/chromecaster-win.exe)
 - [For macOS](https://github.com/Reggino/chromecaster/releases/download/v1.0.1/chromecaster-macos)
