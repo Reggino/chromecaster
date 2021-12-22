@@ -11,9 +11,9 @@
 
 ## Download 1.0.2 (64-bit versions)
 
-- [For Windows](https://github.com/Reggino/chromecaster/releases/download/v1.0.2/chromecaster-win.exe)
+- [For Windows](https://github.com/Reggino/chromecaster/releases/download/v1.0.2/chromecaster.exe)
 - [For macOS](https://github.com/Reggino/chromecaster/releases/download/v1.0.2/chromecaster-macos)
-- [For Linux](https://github.com/Reggino/chromecaster/releases/download/v1.0.2/chromecaster-linux)
+- [For Linux](https://github.com/Reggino/chromecaster/releases/download/v1.0.2/chromecaster)
 
 ## Usage
 
