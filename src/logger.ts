@@ -1,6 +1,7 @@
 import readline from "readline";
 let index = 0;
 let verbose = false;
+const spinners = ["-", "\\", "|", "/"];
 
 export function setVerbose(newVerbose: boolean) {
   verbose = newVerbose;
@@ -11,7 +12,13 @@ export function log(...data: any[]) {
     console.log(...data);
     return;
   }
-  const spinners = ["-", "\\", "|", "/"];
+
+  // when no message is provided, just increment the spinner
+  if (!data.length) {
+    readline.cursorTo(process.stdout, 0);
+    process.stdout.write(` ${spinners[index++ % 4]}`);
+    return;
+  }
 
   readline.clearLine(process.stdout, 0);
   readline.cursorTo(process.stdout, 0);

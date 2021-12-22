@@ -7,5 +7,6 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "outDir": "dist"
-  }
+  },
+  "include": ["src"]
 }

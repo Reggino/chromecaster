@@ -45,8 +45,7 @@ program
               myChromecast,
               parse(videoPath).name,
               finalPort,
-              finalVideoPath,
-              finalSubtitlePath
+              finalVideoPath
             )
           );
         }

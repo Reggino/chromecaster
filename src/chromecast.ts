@@ -75,8 +75,7 @@ export async function startMovie(
   chromecast: IChromecast,
   title: string,
   localPort: number,
-  videoPath: string,
-  subtitlesPath: string | null
+  videoPath: string
 ) {
   const nets = networkInterfaces();
   const localIpAddresses = Object.values(nets).reduce<string[]>(

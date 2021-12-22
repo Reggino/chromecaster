@@ -1,15 +1,13 @@
-import { parse, sep } from "path";
+import { parse, sep, resolve } from "path";
 import {
   chmodSync,
+  createReadStream,
   createWriteStream,
   existsSync,
-  renameSync,
   unlinkSync,
 } from "fs";
 import { arch, platform, tmpdir } from "os";
 import { spawn } from "child_process";
-import { createGunzip } from "zlib";
-import axios from "axios";
 import { log } from "./logger";
 
 export type Track = {
@@ -32,39 +30,36 @@ interface ResultObject {
   };
 }
 
-async function download(url: string, toPath: string) {
-  if (existsSync(toPath)) {
-    log(`${toPath} already exists. Skipping download`);
+const programPaths: { [program: string]: string } = {};
+
+async function install(program: string) {
+  log(`Installing ${program}`);
+  const currentPlatform = platform();
+  const programFileName = `${program}${
+    currentPlatform === "win32" ? ".exe" : ""
+  }`;
+  const programSourcePath = resolve(
+    __dirname,
+    `../node_modules/${program}-static/bin/${currentPlatform}/${arch()}/${programFileName}`
+  );
+  const programDestinationPath = `${tmpdir()}${sep}chromecaster.${programFileName}`;
+  programPaths[program] = programDestinationPath;
+  if (existsSync(programDestinationPath)) {
+    log(`Program already installed: skipping.`);
     return;
   }
-  log(`Downloading ${url} to ${toPath}`);
-  await axios
-    .request({
-      method: "GET",
-      responseType: "stream",
-      url,
-    })
-    .then(
-      (response) =>
-        new Promise<void>((resolve, reject) => {
-          let rs = response.data;
-          if (url.endsWith(".gz")) {
-            rs = rs.pipe(createGunzip());
-          }
-          // use a tmp file so an interrupted download will not leave a broken file
-          rs.pipe(createWriteStream(`${toPath}.tmp`))
-            .on("error", reject)
-            .on("finish", () => {
-              renameSync(`${toPath}.tmp`, toPath);
-              resolve();
-            });
-        })
-    );
-  chmodSync(toPath, 0o755);
-  log(`Copy complete to ${toPath}`);
+  log(`Setting up executable copy of ${program}...`);
+  await new Promise((resolve, reject) => {
+    const rs = createReadStream(programSourcePath);
+    const ws = createWriteStream(programDestinationPath);
+    rs.pipe(ws).on("finish", resolve).on("error", reject);
+  });
+  chmodSync(programDestinationPath, 0o777);
+  log(`Copy complete to ${programDestinationPath}`);
 }
 
 export async function initialize(videoPath: string) {
+  await Promise.all(["mediainfo", "ffmpeg"].map(install));
   const parsedPath = parse(videoPath);
   const lcExtension = parsedPath.ext.substr(1).toLowerCase();
   if (
@@ -89,19 +84,8 @@ export async function initialize(videoPath: string) {
   }
   log(`Detected valid extension (${parsedPath.ext})`);
 
-  // installing mediainfo
-  const pathToMediainfo = `${tmpdir()}${sep}chromecaster.mediainfo${
-    platform() === "win32" ? ".exe" : ""
-  }`;
-  await download(
-    `https://raw.githubusercontent.com/Aldrian/mediainfo-static/master/bin/${platform()}/${arch()}/mediainfo${
-      platform() === "win32" ? ".exe" : ""
-    }`,
-    pathToMediainfo
-  );
-
   const result = await new Promise<ResultObject>((resolve, reject) => {
-    const mediainfoProcess = spawn(pathToMediainfo, [
+    const mediainfoProcess = spawn(programPaths["mediainfo"], [
       "--Output=JSON",
       videoPath,
     ]);
@@ -238,17 +222,7 @@ export async function initialize(videoPath: string) {
     unlinkSync(destinationFilename);
   } catch {}
 
-  // "installing" ffmpeg
-  // https://github.com/vercel/pkg/issues/960
-  const pathToFfmpeg = `${tmpdir()}${sep}${
-    platform() === "win32" ? "chromecaster.ffmpeg.exe" : "chromecaster.ffmpeg"
-  }`;
-  await download(
-    `https://github.com/eugeneware/ffmpeg-static/releases/download/b4.4/${platform()}-${arch()}.gz`,
-    pathToFfmpeg
-  );
-
-  const ffmpegProcess = spawn(pathToFfmpeg, [
+  const ffmpegProcess = spawn(programPaths["ffmpeg"], [
     "-loglevel",
     "error",
     "-stats",
