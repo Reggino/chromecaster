@@ -9,11 +9,11 @@
 - Support for older Chromecast devices and firmware
 - No external dependencies (required software is embeded)
 
-## Download 1.0.1 (64-bit versions)
+## Download 1.0.2 (64-bit versions)
 
-- [For Windows](https://github.com/Reggino/chromecaster/releases/download/v1.0.1/chromecaster-win.exe)
-- [For macOS](https://github.com/Reggino/chromecaster/releases/download/v1.0.1/chromecaster-macos)
-- [For Linux](https://github.com/Reggino/chromecaster/releases/download/v1.0.1/chromecaster-linux)
+- [For Windows](https://github.com/Reggino/chromecaster/releases/download/v1.0.2/chromecaster-win.exe)
+- [For macOS](https://github.com/Reggino/chromecaster/releases/download/v1.0.2/chromecaster-macos)
+- [For Linux](https://github.com/Reggino/chromecaster/releases/download/v1.0.2/chromecaster-linux)
 
 ## Usage
 
