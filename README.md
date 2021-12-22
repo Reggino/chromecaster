@@ -7,7 +7,7 @@
 - Realtime transcoding of video, if required
 - Support for .srt subtitles
 - Support for older Chromecast devices and firmware
-- No external dependencies (required software is embeded)
+- No external dependencies (required software is embedded)
 
 ## Download 1.0.2 (64-bit versions)
 
