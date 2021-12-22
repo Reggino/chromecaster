@@ -1,0 +1,5 @@
+{
+  "assets": ["../../../node_modules/castv2/lib/cast_channel.proto"],
+  "outputPath": "../../../build",
+  "targets": [ "node16-win-ia32" ]
+}

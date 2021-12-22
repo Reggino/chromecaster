@@ -1,0 +1,4 @@
+{
+  "assets": ["../../../node_modules/castv2/lib/cast_channel.proto"],
+  "targets": ["node16-macos-x64"]
+}
