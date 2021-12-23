@@ -1,8 +1,8 @@
 {
   "assets": [
     "../../../node_modules/castv2/lib/cast_channel.proto",
-    "../../../node_modules/mediainfo-static/bin/win32/x64/mediainfo",
-    "../../../node_modules/ffmpeg-static/bin/win32/x64/ffmpeg"
+    "../../../node_modules/mediainfo-static/bin/win32/x64/mediainfo.exe",
+    "../../../node_modules/ffmpeg-static/bin/win32/x64/ffmpeg.exe"
   ],
   "outputPath": "../../../build",
   "targets": ["node16-win-x64"]
