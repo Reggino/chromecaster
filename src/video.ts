@@ -258,7 +258,7 @@ export async function initialize(videoPath: string) {
   return new Promise<string>((resolve, reject) => {
     log("Giving ffmpeg 5 second head start before streaming...");
     setTimeout(() => {
-      log("FFmpeg stream probably readly, continue");
+      log("FFmpeg stream probably ready, continue");
       resolve(destinationFilename);
     }, 5000);
   });
