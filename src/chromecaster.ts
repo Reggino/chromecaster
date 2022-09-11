@@ -13,6 +13,7 @@ program
   .description("Play any video on your Chromecast")
   .option("-c, --chromecast <name>", "name of target Chromecast on the network")
   .option("-s, --subtitles <path to .srt-file>", "subtitles to show")
+  .option("--stereo", "Force stereo (may fix audio)")
   .option("-v, --verbose", "show debug information")
   .argument("<path to video file>", "video to play")
   .action((videoPath) => {
@@ -29,7 +30,7 @@ program
     Promise.all([
       chromecast.initialize(options.chromecast),
       getPort(),
-      video.initialize(videoPath),
+      video.initialize(videoPath, options.stereo),
       subtitles.initialize(options.subtitles),
     ])
       .then(

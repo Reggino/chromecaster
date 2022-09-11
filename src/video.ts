@@ -58,7 +58,7 @@ async function install(program: string) {
   log(`Copy complete to ${programDestinationPath}`);
 }
 
-export async function initialize(videoPath: string) {
+export async function initialize(videoPath: string, forceStereo: boolean) {
   await Promise.all(["mediainfo", "ffmpeg"].map(install));
   const parsedPath = parse(videoPath);
   const lcExtension = parsedPath.ext.substr(1).toLowerCase();
@@ -182,7 +182,7 @@ export async function initialize(videoPath: string) {
   const inputAcodec = audioTrack.Format as string;
   let outputAcodec: string | null = null;
   const inputAchannels = parseInt(audioTrack.Channels as string, 10);
-  if (!isNaN(inputAchannels) && inputAchannels > 2) {
+  if (forceStereo && !isNaN(inputAchannels) && inputAchannels > 2) {
     outputAcodec = "libvorbis";
     ffmpegArgs.push("-ac", "2");
   } else {
@@ -251,14 +251,14 @@ export async function initialize(videoPath: string) {
   ffmpegProcess.on("close", (code) => {
     if (code) {
       log(`ffmpeg process exited with code ${code}`);
-      process.exit(code);
+      // process.exit(code);
     }
   });
 
   return new Promise<string>((resolve, reject) => {
     log("Giving ffmpeg 5 second head start before streaming...");
     setTimeout(() => {
-      log("FFmpeg stream probably readly, continue");
+      log("FFmpeg stream probably ready, continue");
       resolve(destinationFilename);
     }, 5000);
   });

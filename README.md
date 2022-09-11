@@ -29,6 +29,7 @@ Options:
   -V, --version                        output the version number
   -c, --chromecast <name>              Name of target Chromecast on the network
   -s, --subtitles <path to .srt-file>  Subtitles to show
+  --stereo                             Force stereo (may fix audio)
   -h, --help                           display help for command
 
 ```
