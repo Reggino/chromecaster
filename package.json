@@ -1,7 +1,7 @@
 {
   "name": "chromecaster",
-  "version": "1.0.2",
-  "description": "",
+  "version": "1.0.3",
+  "description": "Play any video on your Chromecast",
   "bin": "dist/chromecaster.js",
   "scripts": {
     "build": "./node_modules/.bin/ts-node-script scripts/build.ts",
@@ -26,7 +26,7 @@
     "ffmpeg-static": "^4.4.0",
     "get-port": "^5.1.1",
     "mediainfo-static": "^1.0.5",
-    "pkg": "^5.5.1",
+    "pkg": "^5.8.0",
     "prettier": "^2.5.1",
     "shell-escape": "^0.2.0",
     "srt-to-vtt": "^1.1.3",

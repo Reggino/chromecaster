@@ -6,11 +6,19 @@ import * as video from "./video.js";
 import * as server from "./server.js";
 import * as subtitles from "./subtitles.js";
 import { log, setVerbose } from "./logger";
+import { readFileSync } from "fs";
+import * as path from "path";
+
+/* MARK_PACKAGE_JSON_START */
+const packageJson = JSON.parse(
+  readFileSync(path.resolve(__dirname, "../package.json"), "utf-8")
+);
+/* MARK_PACKAGE_JSON_END */
 
 program
-  .name("chromecaster")
-  .version("0.0.1")
-  .description("Play any video on your Chromecast")
+  .name(packageJson.name)
+  .version(packageJson.version)
+  .description(packageJson.description)
   .option("-c, --chromecast <name>", "name of target Chromecast on the network")
   .option("-s, --subtitles <path to .srt-file>", "subtitles to show")
   .option("--stereo", "Force stereo (may fix audio)")

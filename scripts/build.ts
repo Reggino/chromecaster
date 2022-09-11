@@ -1,22 +1,43 @@
-import { resolve } from "path";
 import { execFileSync } from "child_process";
 import { log } from "../src/logger";
+import { readFileSync, writeFileSync } from "fs";
+import { resolve } from "path";
 
-log(`32 bit builds not (yet?) available`);
+log(`Starting TS compilation`);
+execFileSync("./node_modules/.bin/tsc", { cwd: resolve(__dirname, "../") });
+
+log("Injecting package.json in build");
+
+const packageJsonString = readFileSync(
+  resolve(__dirname, "../package.json"),
+  "utf-8"
+);
+const chromecasterJs = readFileSync(
+  resolve(__dirname, "../dist/chromecaster.js"),
+  "utf-8"
+);
+
+writeFileSync(
+  resolve(__dirname, "../dist/chromecaster.js"),
+  chromecasterJs.replace(
+    /\/\* MARK_PACKAGE_JSON_START(.|\n)+MARK_PACKAGE_JSON_END \*\//,
+    `const packageJson = ${packageJsonString};`
+  )
+);
 
 Promise.all(
   ["darwin", "linux", "win32"].map((platform) =>
     Promise.all(
       ["x64"].map((architecture) => {
         log(`Starting build ${platform}/${architecture}`);
-        let outputFilename = 'chromecaster';
+        let outputFilename = "chromecaster";
         switch (platform) {
-          case 'win32':
-            outputFilename += '.exe';
+          case "win32":
+            outputFilename += ".exe";
             break;
 
-          case 'darwin':
-            outputFilename += '-macos';
+          case "darwin":
+            outputFilename += "-macos";
             break;
         }
         try {
