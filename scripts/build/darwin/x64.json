@@ -2,7 +2,8 @@
   "assets": [
     "../../../node_modules/castv2/lib/cast_channel.proto",
     "../../../node_modules/mediainfo-static/bin/darwin/x64/mediainfo",
-    "../../../node_modules/ffmpeg-static/bin/darwin/x64/ffmpeg"
+    "../../../node_modules/ffmpeg-static/bin/darwin/x64/ffmpeg",
+    "../../../package.json"
   ],
   "targets": ["node16-macos-x64"]
 }

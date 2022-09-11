@@ -6,14 +6,7 @@ import * as video from "./video.js";
 import * as server from "./server.js";
 import * as subtitles from "./subtitles.js";
 import { log, setVerbose } from "./logger";
-import { readFileSync } from "fs";
-import * as path from "path";
-
-/* MARK_PACKAGE_JSON_START */
-const packageJson = JSON.parse(
-  readFileSync(path.resolve(__dirname, "../package.json"), "utf-8")
-);
-/* MARK_PACKAGE_JSON_END */
+import packageJson from "../package.json";
 
 program
   .name(packageJson.name)

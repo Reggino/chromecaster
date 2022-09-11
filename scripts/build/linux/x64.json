@@ -2,7 +2,8 @@
   "assets": [
     "../../../node_modules/castv2/lib/cast_channel.proto",
     "../../../node_modules/mediainfo-static/bin/linux/x64/mediainfo",
-    "../../../node_modules/ffmpeg-static/bin/linux/x64/ffmpeg"
+    "../../../node_modules/ffmpeg-static/bin/linux/x64/ffmpeg",
+    "../../../package.json"
   ],
   "outputPath": "../../../build",
   "targets": ["node16-linux-x64"]

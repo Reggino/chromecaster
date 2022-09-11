@@ -6,25 +6,6 @@ import { resolve } from "path";
 log(`Starting TS compilation`);
 execFileSync("./node_modules/.bin/tsc", { cwd: resolve(__dirname, "../") });
 
-log("Injecting package.json in build");
-
-const packageJsonString = readFileSync(
-  resolve(__dirname, "../package.json"),
-  "utf-8"
-);
-const chromecasterJs = readFileSync(
-  resolve(__dirname, "../dist/chromecaster.js"),
-  "utf-8"
-);
-
-writeFileSync(
-  resolve(__dirname, "../dist/chromecaster.js"),
-  chromecasterJs.replace(
-    /\/\* MARK_PACKAGE_JSON_START(.|\n)+MARK_PACKAGE_JSON_END \*\//,
-    `const packageJson = ${packageJsonString};`
-  )
-);
-
 Promise.all(
   ["darwin", "linux", "win32"].map((platform) =>
     Promise.all(
